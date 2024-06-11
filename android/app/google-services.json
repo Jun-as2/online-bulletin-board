@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "246551533085",
+    "project_id": "online-bulletin-board",
+    "storage_bucket": "online-bulletin-board.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:246551533085:android:986b3b8ec0f68fc7e1d8f4",
+        "android_client_info": {
+          "package_name": "com.jun.online.bulletin.board"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA2YCvSj4unUZtAnuEfWs0Ki1uBoPAwndw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
