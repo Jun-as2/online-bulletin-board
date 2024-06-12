@@ -20,7 +20,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   TextEditingController passwordCheckController = TextEditingController();
   FirebaseFirestore firestore = FirebaseFirestore.instance;
 
-  Future<void> _signUp() async {
+  Future<bool> _signUp() async {
     if (usernameController.text.isNotEmpty &&
         passwordController.text.isNotEmpty &&
         passwordCheckController.text.isNotEmpty &&
@@ -48,7 +48,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               Fluttertoast.showToast(msg: "회원가입에 실패하였습니다");
               break;
           }
-          return;
+          return false;
         }
         UserModel userModel = UserModel(
           emailId: emailController.text,
@@ -58,14 +58,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
         );
         setUserData(userModel);
         Fluttertoast.showToast(msg: '회원가입 되었습니다');
-
-        Navigator.pop(context);
       } else {
         Fluttertoast.showToast(msg: '패스워드가 일치하지 않습니다');
       }
     } else {
       Fluttertoast.showToast(msg: '모든 정보를 입력하십시오');
     }
+    return true;
   }
 
   @override
@@ -155,8 +154,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 height: 15,
               ),
               ElevatedButton(
-                onPressed: () {
-                  _signUp();
+                onPressed: () async {
+                  bool isSignUp = await _signUp();
+                  if (isSignUp == false) {
+                    return;
+                  } else {
+                    Navigator.pop(context);
+                  }
                 },
                 child: Text(
                   'Sign Up',
