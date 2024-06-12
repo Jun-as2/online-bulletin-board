@@ -1,6 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:intl/intl.dart';
+import 'package:online_bulletin_board/model/comment_model.dart';
 import 'package:online_bulletin_board/model/post_model.dart';
+import 'package:online_bulletin_board/network_utils/comment_data_manager.dart';
+import 'package:online_bulletin_board/ui/comment_tile.dart';
 
 class DetailScreen extends StatefulWidget {
   const DetailScreen({super.key, required this.post});
@@ -16,6 +22,8 @@ class _DetailScreenState extends State<DetailScreen> {
 
   PostModel post;
   TextEditingController commentController = TextEditingController();
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  FirebaseAuth firebaseAuth = FirebaseAuth.instance;
 
   final DateFormat format = DateFormat('MM-dd HH:mm');
 
@@ -28,6 +36,7 @@ class _DetailScreenState extends State<DetailScreen> {
   Widget build(BuildContext context) {
     DateTime dateTime = parseDate(post.dateTime.toString());
     String date = format.format(dateTime);
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -74,6 +83,40 @@ class _DetailScreenState extends State<DetailScreen> {
               ),
             ),
           ),
+          FutureBuilder<List<CommentModel>>(
+            future: getCommentData(post.postId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return SliverToBoxAdapter(
+                  child: const Center(),
+                );
+              } else if (snapshot.hasError) {
+                return SliverToBoxAdapter(
+                  child: Center(child: Text('Error: ${snapshot.error}')),
+                );
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const SliverToBoxAdapter(
+                  child: Center(),
+                );
+              } else {
+                List<CommentModel> comments = snapshot.data!;
+                return SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
+                        child: CommentTile(
+                          comment: comments[index],
+                        ),
+                      );
+                    },
+                    childCount: comments.length,
+                  ),
+                );
+              }
+            },
+          ),
         ],
       ),
       bottomNavigationBar: Container(
@@ -102,7 +145,22 @@ class _DetailScreenState extends State<DetailScreen> {
             ),
             IconButton(
               icon: Icon(Icons.send),
-              onPressed: () async {},
+              onPressed: () async {
+                if (commentController.text.isEmpty) {
+                  Fluttertoast.showToast(msg: "댓글을 입력하세요");
+                  return;
+                }
+                User? user = firebaseAuth.currentUser;
+                String? idToken = await user?.getIdToken();
+                String? postId = post.postId;
+                CommentModel commentModel = CommentModel(
+                    comment: commentController.text,
+                    postId: postId,
+                    idToken: idToken);
+                setCommentData(commentModel);
+                commentController = TextEditingController();
+                setState(() {});
+              },
             ),
           ],
         ),
